@@ -222,20 +222,24 @@ class MediaBrowserConfigFlow(ConfigFlow, domain=DOMAIN):  # type: ignore
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Get the options flow for this handler."""
-        return MediaBrowserOptionsFlow(config_entry)
+        return MediaBrowserOptionsFlow()
 
 
 class MediaBrowserOptionsFlow(OptionsFlow):
     """Handle an option flow for Media Browser (Emby/Jellyfin)."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        self.config_entry = config_entry
-        self.options = deepcopy(dict(config_entry.options))
+    def __init__(self) -> None:
+        # options will be populated in async_step_init from self.config_entry
+        self.options: dict[str, Any] = {}
 
     async def async_step_init(
-        self, user_input: dict[str, Any] | None = None  # pylint: disable=W0613
+        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        # Populate options from config_entry on first call
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         # Ensure critical options exist to prevent 500 errors
         if CONF_URL not in self.options or CONF_API_KEY not in self.options:
             # Try to migrate from data if available
@@ -243,13 +247,13 @@ class MediaBrowserOptionsFlow(OptionsFlow):
                 self.options[CONF_URL] = self.config_entry.data[CONF_URL]
             if CONF_API_KEY in self.config_entry.data:
                 self.options[CONF_API_KEY] = self.config_entry.data[CONF_API_KEY]
-            
+
             # Update the entry with migrated options
             if CONF_URL in self.options and CONF_API_KEY in self.options:
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, options=self.options
                 )
-        
+
         return self.async_show_menu(
             step_id="init",
             menu_options=[
@@ -267,12 +271,16 @@ class MediaBrowserOptionsFlow(OptionsFlow):
     async def async_step_auth(self, user_input: dict[str, Any] | None) -> FlowResult:
         """Handle the authentication step."""
         errors: dict[str, str] = {}
-        
+
+        # Ensure options are populated
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         # Ensure URL exists before validating
         if CONF_URL not in self.options:
             errors["base"] = "bad_request"
             return self.async_abort(reason="missing_url")
-        
+
         if user_input:
             if await _validate_config(
                 self.options,
@@ -309,7 +317,10 @@ class MediaBrowserOptionsFlow(OptionsFlow):
     async def async_step_libraries(
         self, user_input: dict[str, Any] | None
     ) -> FlowResult:
-        """Handle the authentication step."""
+        """Handle the libraries step."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             self.options |= user_input
             return self.async_create_entry(
@@ -333,6 +344,9 @@ class MediaBrowserOptionsFlow(OptionsFlow):
 
     async def async_step_events(self, user_input: dict[str, Any] | None) -> FlowResult:
         """Handle the events step."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             self.options |= user_input
             return self.async_create_entry(
@@ -368,6 +382,9 @@ class MediaBrowserOptionsFlow(OptionsFlow):
 
     async def async_step_players(self, user_input: dict[str, Any] | None) -> FlowResult:
         """Handle the media players step."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             self.options |= user_input
             return self.async_create_entry(
@@ -418,6 +435,8 @@ class MediaBrowserOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None
     ) -> FlowResult:
         """Handle a step to remove a new latest sensor."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
 
         sensors = self.options.get(CONF_SENSORS, [])
 
@@ -476,6 +495,9 @@ class MediaBrowserOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None
     ) -> FlowResult:
         """Handle a step to add a new latest sensor."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             sensor_key = build_sensor_key_from_config(user_input)
 
@@ -550,6 +572,9 @@ class MediaBrowserOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None
     ) -> FlowResult:
         """Handle the advanced step."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             self.options |= user_input
             return self.async_create_entry(title="", data=self.options)
@@ -602,10 +627,13 @@ class MediaBrowserOptionsFlow(OptionsFlow):
         self, user_input: dict[str, Any] | None
     ) -> FlowResult:
         """Handle the maintenance step (e.g., purge orphaned devices)."""
+        if not self.options:
+            self.options = deepcopy(dict(self.config_entry.options))
+
         if user_input:
             if user_input.get("purge_devices", False):
                 await self.hass.services.async_call(
-                    DOMAIN, SERVICE_PURGE_DEVICES, {}, True
+                    DOMAIN, "purge_devices", {}, True
                 )
             return self.async_create_entry(title="", data=self.options)
 
