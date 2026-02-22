@@ -3,7 +3,7 @@ send_message:
   description: Sends a message to a session
   target:
     entity:
-      integration: mediabrowser
+      integration: jellyfin
       domain: media_player
   fields:
     text:
@@ -32,10 +32,10 @@ send_message:
 
 send_command:
   name: Send command
-  description: Sends a message to a session
+  description: Sends a command to a session
   target:
     entity:
-      integration: mediabrowser
+      integration: jellyfin
       domain: media_player
   fields:
     command:
