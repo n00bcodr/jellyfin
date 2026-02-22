@@ -27,9 +27,9 @@ jobs:
         shell: "bash"
         run: |
           cd "${{ github.workspace }}/custom_components/jellyfin"
-          zip jellyfin.zip -r ./
+          zip -r "${{ github.workspace }}/jellyfin.zip" .
 
       - name: "Upload the ZIP file to the release"
         uses: softprops/action-gh-release@v2.5.0
         with:
-          files: ${{ github.workspace }}/custom_components/jellyfin/jellyfin.zip
+          files: ${{ github.workspace }}/jellyfin.zip
