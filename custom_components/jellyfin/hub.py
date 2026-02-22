@@ -8,6 +8,8 @@ import logging
 from collections.abc import Callable
 from datetime import datetime
 from typing import Any, Awaitable
+import ssl as ssl_lib
+
 
 import aiohttp
 import async_timeout
@@ -159,7 +161,8 @@ class MediaBrowserHub:
 
         self._is_api_key_validated: bool = False
 
-        connector = aiohttp.TCPConnector(ssl=self._use_ssl)
+        ssl_context = ssl_lib.create_default_context() if self._use_ssl else False
+        connector = aiohttp.TCPConnector(ssl=ssl_context)
         self._rest = aiohttp.ClientSession(connector=connector)
         self._ws: aiohttp.ClientWebSocketResponse | None = None
         self._ws_loop: asyncio.Task[None] | None = None
