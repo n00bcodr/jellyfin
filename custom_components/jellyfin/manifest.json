@@ -6,10 +6,10 @@
   ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/n00bcodr/ha-jellyfin",
+  "documentation": "https://github.com/n00bcodr/jellyfin",
   "homekit": {},
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/n00bcodr/ha-jellyfin/issues",
+  "issue_tracker": "https://github.com/n00bcodr/jellyfin/issues",
   "loggers": [
     "custom_components.jellyfin"
   ],
