@@ -339,6 +339,8 @@ class MediaBrowserPlayer(MediaBrowserEntity, MediaPlayerEntity):
         self._attr_media_position_updated_at = self._last_update
         self._attr_app_id = session.get(Session.ID)
         self._attr_app_name = session.get(Session.CLIENT)
+        self._attr_extra_state_attributes["user_name"] = self._user_name
+        self._attr_extra_state_attributes["device_name"] = self._device_name
         if remote_control:
             self._attr_state = MediaPlayerState.IDLE
             self._attr_supported_features |= (
